@@ -1,0 +1,22 @@
+
+
+type Query{
+	login(
+		user: LoginInput!
+	): String!
+}
+
+input LoginInput{
+	username: String!
+	password: String!
+}
+
+type Mutation{
+	register(
+		user: LoginInput!
+	): Boolean!
+}
+schema{
+	query: Query,
+	mutation: Mutation
+}

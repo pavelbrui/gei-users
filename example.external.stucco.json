@@ -1,0 +1,17 @@
+{
+  "resolvers": {
+    "UserQuery.login": {
+      "resolve": {
+        "name": "node_modules/gei-users/lib/Query/login"
+      }
+    },
+    "UserMutation.register": {
+      "resolve": {
+        "name": "node_modules/gei-users/lib/Mutation/register",
+        "data": {
+          "model": "Post"
+        }
+      }
+    }
+  }
+}

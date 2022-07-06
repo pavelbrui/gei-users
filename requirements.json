@@ -1,6 +1,0 @@
-{
-  "ENV": {
-    "required": ["JWT_SECRET", "MONGO_URL"]
-  },
-  "data": {}
-}

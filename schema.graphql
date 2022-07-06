@@ -4,6 +4,11 @@ type Query{
 	login(
 		user: LoginInput!
 	): String!
+	"""
+	Check if the user is logged in from headers and return it
+	"""
+	isUser: User
+	mustBeUser: User
 }
 
 input LoginInput{
@@ -15,6 +20,10 @@ type Mutation{
 	register(
 		user: LoginInput!
 	): Boolean!
+}
+
+type User{
+	username: String!
 }
 schema{
 	query: Query,

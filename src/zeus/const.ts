@@ -18,10 +18,15 @@ export const AllTypesProps: Record<string,any> = {
 
 export const ReturnTypes: Record<string,any> = {
 	Query:{
-		login:"String"
+		login:"String",
+		isUser:"User",
+		mustBeUser:"User"
 	},
 	Mutation:{
 		register:"Boolean"
+	},
+	User:{
+		username:"String"
 	}
 }
 

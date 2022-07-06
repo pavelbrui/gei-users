@@ -867,6 +867,9 @@ type ZEUS_UNIONS = never
 export type ValueTypes = {
     ["Query"]: AliasType<{
 login?: [{	user: ValueTypes["LoginInput"] | Variable<any, string>},boolean | `@${string}`],
+	/** Check if the user is logged in from headers and return it */
+	isUser?:ValueTypes["User"],
+	mustBeUser?:ValueTypes["User"],
 		__typename?: boolean | `@${string}`
 }>;
 	["LoginInput"]: {
@@ -876,12 +879,19 @@ login?: [{	user: ValueTypes["LoginInput"] | Variable<any, string>},boolean | `@$
 	["Mutation"]: AliasType<{
 register?: [{	user: ValueTypes["LoginInput"] | Variable<any, string>},boolean | `@${string}`],
 		__typename?: boolean | `@${string}`
+}>;
+	["User"]: AliasType<{
+	username?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
 }>
   }
 
 export type ResolverInputTypes = {
     ["Query"]: AliasType<{
 login?: [{	user: ResolverInputTypes["LoginInput"]},boolean | `@${string}`],
+	/** Check if the user is logged in from headers and return it */
+	isUser?:ResolverInputTypes["User"],
+	mustBeUser?:ResolverInputTypes["User"],
 		__typename?: boolean | `@${string}`
 }>;
 	["LoginInput"]: {
@@ -891,12 +901,19 @@ login?: [{	user: ResolverInputTypes["LoginInput"]},boolean | `@${string}`],
 	["Mutation"]: AliasType<{
 register?: [{	user: ResolverInputTypes["LoginInput"]},boolean | `@${string}`],
 		__typename?: boolean | `@${string}`
+}>;
+	["User"]: AliasType<{
+	username?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
 }>
   }
 
 export type ModelTypes = {
     ["Query"]: {
-		login: string
+		login: string,
+	/** Check if the user is logged in from headers and return it */
+	isUser?: ModelTypes["User"] | undefined,
+	mustBeUser?: ModelTypes["User"] | undefined
 };
 	["LoginInput"]: {
 	username: string,
@@ -904,13 +921,19 @@ export type ModelTypes = {
 };
 	["Mutation"]: {
 		register: boolean
+};
+	["User"]: {
+		username: string
 }
     }
 
 export type GraphQLTypes = {
     ["Query"]: {
 	__typename: "Query",
-	login: string
+	login: string,
+	/** Check if the user is logged in from headers and return it */
+	isUser?: GraphQLTypes["User"] | undefined,
+	mustBeUser?: GraphQLTypes["User"] | undefined
 };
 	["LoginInput"]: {
 		username: string,
@@ -919,6 +942,10 @@ export type GraphQLTypes = {
 	["Mutation"]: {
 	__typename: "Mutation",
 	register: boolean
+};
+	["User"]: {
+	__typename: "User",
+	username: string
 }
     }
 

@@ -2,6 +2,7 @@ import { FieldResolveInput } from 'stucco-js';
 import { verify } from 'jsonwebtoken';
 import { DB } from './db/mongo';
 import crypto from 'crypto';
+import { UserCollection } from './db/collections';
 
 export type UserModel = {
   username: string;
@@ -23,7 +24,7 @@ const decodeToken = (token: string) => {
 
 export const getUser = async (token: string): Promise<UserModel | undefined> => {
   const db = await DB();
-  const col = await db.collection<UserModel>('UserCol');
+  const col = await db.collection<UserModel>(UserCollection);
   const { username } = decodeToken(token);
   const user = await col.findOne({
     username,

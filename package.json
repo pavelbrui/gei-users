@@ -1,6 +1,6 @@
 {
   "name": "gei-users",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "GraphQL Editor integration for stucco. Allows basic username/password authentication flow",
   "main": "index.js",
   "private": false,

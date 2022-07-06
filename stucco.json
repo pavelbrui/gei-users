@@ -1,14 +1,24 @@
 {
-  "resolvers": {
-    "Query.login": {
-      "resolve": {
-        "name": "lib/Query/login"
-      }
-    },
-    "Mutation.register": {
-      "resolve": {
-        "name": "lib/Mutation/register"
-      }
+    "resolvers": {
+        "Query.login": {
+            "resolve": {
+                "name": "lib/Query/login"
+            }
+        },
+        "Mutation.register": {
+            "resolve": {
+                "name": "lib/Mutation/register"
+            }
+        },
+        "Query.isUser": {
+            "resolve": {
+                "name": "lib/Query/isUser"
+            }
+        },
+        "Query.mustBeUser": {
+            "resolve": {
+                "name": "lib/Query/mustBeUser"
+            }
+        }
     }
-  }
 }

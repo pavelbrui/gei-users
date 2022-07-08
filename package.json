@@ -1,6 +1,6 @@
 {
   "name": "gei-users",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "GraphQL Editor integration for stucco. Allows basic username/password authentication flow",
   "main": "index.js",
   "private": false,
@@ -9,7 +9,7 @@
     "build": "tsc",
     "watch": "tsc --watch",
     "update": "gecli schema && gecli typings",
-    "temp-db": "docker run -d -p 27017:27017 --rm mongo"
+    "temp-db": "docker run -p 27017:27017 --rm mongo"
   },
   "repository": {
     "type": "git",
@@ -38,14 +38,5 @@
     "node-fetch": "^2.6.0",
     "stucco-js": "^0.9.16",
     "ws": "^8.8.0"
-  },
-  "gei": {
-    "ENV": {
-      "required": [
-        "JWT_SECRET",
-        "MONGO_URL"
-      ]
-    },
-    "data": {}
   }
 }

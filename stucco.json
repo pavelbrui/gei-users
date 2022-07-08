@@ -1,24 +1,32 @@
 {
-    "resolvers": {
-        "Query.login": {
-            "resolve": {
-                "name": "lib/Query/login"
-            }
-        },
-        "Mutation.register": {
-            "resolve": {
-                "name": "lib/Mutation/register"
-            }
-        },
-        "Query.isUser": {
-            "resolve": {
-                "name": "lib/Query/isUser"
-            }
-        },
-        "Query.mustBeUser": {
-            "resolve": {
-                "name": "lib/Query/mustBeUser"
-            }
-        }
+  "resolvers": {
+    "Query.login": {
+      "name": "Login",
+      "description": "Username and password log in resolver",
+      "resolve": {
+        "name": "lib/Query/login"
+      }
+    },
+    "Mutation.register": {
+      "name": "Register",
+      "description": "Username and password registration resolver",
+      "resolve": {
+        "name": "lib/Mutation/register"
+      }
+    },
+    "Query.isUser": {
+      "name": "Is logged in",
+      "description": "Provide token via headers to check if user is logged in. Returns User object",
+      "resolve": {
+        "name": "lib/Query/isUser"
+      }
+    },
+    "Query.mustBeUser": {
+      "name": "Must be logged in",
+      "description": "Provide token via headers to check if user is logged in. Returns User object. If user is not logged in throws an error",
+      "resolve": {
+        "name": "lib/Query/mustBeUser"
+      }
     }
+  }
 }

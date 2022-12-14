@@ -19,6 +19,9 @@ export const handler = async (input: FieldResolveInput) =>
     const {
       user: { username, password },
     } = input.arguments as ResolverType<ResolverInputTypes['Mutation']['register']>;
+    if (!password) {
+      throw new Error('Password cannot be empty');
+    }
     const user = await db
       .collection(UserCollection)
       .findOne({ username })

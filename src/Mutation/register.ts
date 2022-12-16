@@ -13,13 +13,16 @@ const doIndex = async (db: Db) => {
   indexOnce = true;
 };
 
+const isPasswordEqualToSpecialParams = (password: string): boolean =>
+  password.length >= 6 && /[^a-zA-Z0-9]/.test(password) && !/[^a-zA-Z0-9]/.test(password);
+
 export const handler = async (input: FieldResolveInput) =>
   DB().then(async (db) => {
     await doIndex(db);
     const {
       user: { username, password },
     } = input.arguments as ResolverType<ResolverInputTypes['Mutation']['register']>;
-    if (!password) {
+    if (!isPasswordEqualToSpecialParams(password)) {
       throw new Error('Password cannot be empty');
     }
     const user = await db

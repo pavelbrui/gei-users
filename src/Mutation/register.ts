@@ -14,12 +14,15 @@ const doIndex = async (db: Db) => {
 };
 
 export const isPasswordEqualToSpecialParams = (password: string): boolean =>
-  password.length >= 6 && /[^a-zA-Z0-9]/.test(password) && /[a-z]/.test(password) && /[A-Z]/.test(password);
+  /[^a-zA-Z0-9]/.test(password) && /[a-z]/.test(password) && /[A-Z]/.test(password);
 
 export const handler = async (input: FieldResolveInput) =>
   resolverFor('Mutation', 'register', async ({ userData: { username, password, invitationToken } }) => {
     const db = await DB();
     await doIndex(db);
+    if (password.length >= 6) {
+      throw new Error('Password is too short');
+    }
     if (!isPasswordEqualToSpecialParams(password)) {
       throw new Error('Password doesnt not fit to params');
     }

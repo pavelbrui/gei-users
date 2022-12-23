@@ -9,6 +9,8 @@ type Query{
 	"""
 	isUser: User
 	mustBeUser: User
+	team(teamName: String): Team
+	showTeamInvitations(status: InvitationTeamStatus!): [String]!
 }
 
 input LoginInput{
@@ -18,13 +20,84 @@ input LoginInput{
 
 type Mutation{
 	register(
-		user: LoginInput!
+		userData: RegisterInput!
 	): Boolean!
+	verifyEmail(
+		verifyData: VerifyEmailInput!
+	): Boolean!
+	changePassword(
+		passwords: ChangePasswordInput!
+	): Boolean!
+	generateInviteToken(
+		"""
+		string format dd/mm/rrrr
+		"""
+		tokenOptions: InviteTokenInput!
+	): String!
+	removeUserFromTeam(
+		username: String!
+	): Boolean!
+	sendInvitationToTeam(
+		invitation: SendTeamInvitationInput!
+	): Boolean!
+	joinToTeam(
+		teamName: String!
+	):Boolean!
+	createTeam(
+		teamName: String!
+	): Boolean!	
+}
+
+input SendTeamInvitationInput{
+	username: String!
+	team: String!
+}
+
+input VerifyEmailInput{
+	username: String!
+	token: String!
+}
+
+input InviteTokenInput{
+	expires: String!
+	domain: String!
+}
+
+input ChangePasswordInput{
+	oldPassword: String!
+	newPassword: String!
+}
+
+input RegisterInput{
+	username: String!
+	password: String!
+	invitationToken: String
+}
+
+type InviteToken{
+	token: String!
+	expires: String!
+	domain: String!
+	owner: String!
+}
+
+type Team{
+	name: String!
+	owner: String
+	members: [String!]!
 }
 
 type User{
 	username: String!
+	team: [String]!
+	emailConfirmed: Boolean!
 }
+
+enum InvitationTeamStatus{
+	Waiting
+	Taken
+}
+
 schema{
 	query: Query,
 	mutation: Mutation

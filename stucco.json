@@ -27,6 +27,52 @@
       "resolve": {
         "name": "lib/Query/mustBeUser"
       }
+    },
+    "Query.team": {
+      "resolve": {
+        "name": "lib/Query/team"
+      }
+    },
+    "Query.showTeamInvitations": {
+      "resolve": {
+        "name": "lib/Query/showTeamInvitations"
+      }
+    },
+    "Mutation.createTeam": {
+      "resolve": {
+        "name": "lib/Mutation/createTeam"
+      }
+    },
+    "Mutation.verifyEmail": {
+      "resolve": {
+        "name": "lib/Mutation/verifyEmail"
+      }
+    },
+    "Mutation.changePassword": {
+      "resolve": {
+        "name": "lib/Mutation/changePassword"
+      }
+    },
+    "Mutation.generateInviteToken": {
+      "resolve": {
+        "name": "lib/Mutation/generateInviteToken"
+      }
+    },
+    "Mutation.sendInvitationToTeam": {
+      "resolve": {
+        "name": "lib/Mutation/sendInvitationToTeam"
+      }
+    },
+    "Mutation.joinToTeam": {
+      "resolve": {
+        "name": "lib/Mutation/joinToTeam.js"
+      }
+    },
+    "Mutation.removeUserFromTeam": {
+      "resolve": {
+        "name": "lib/Mutation/removeUserFromTeam"
+      }
     }
   }
 }
+

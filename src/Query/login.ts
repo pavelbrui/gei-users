@@ -22,6 +22,7 @@ export const handler = async (input: FieldResolveInput): Promise<FieldResolveOut
       hash: user.passwordHash,
       salt: user.salt,
     });
+    console.log(passwordMatch);
     if (!passwordMatch) {
       throw new Error('Invalid login or password');
     }

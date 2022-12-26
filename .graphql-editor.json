@@ -7,5 +7,6 @@
     "typingsDir": "./src",
     "backendSrc": "./src",
     "backendLib": "./lib",
-    "schemaDir": "./"
+    "schemaDir": "./",
+    "projectVersion": "0.0.51"
 }

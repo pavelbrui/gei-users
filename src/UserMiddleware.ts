@@ -3,9 +3,14 @@ import { verify } from 'jsonwebtoken';
 import { DB } from './db/mongo';
 import crypto from 'crypto';
 import { UserCollection } from './db/collections';
+import { ResolverInputTypes } from './zeus';
 
 export type UserModel = {
   username: string;
+  team: string[];
+  isEmailConfirmed: boolean;
+  passwordHash: string;
+  salt: string;
 };
 
 const decodeToken = (token: string) => {
@@ -56,6 +61,35 @@ export const getUserFromHandlerInputOrThrow = async (input: FieldResolveInput): 
   }
   return user;
 };
+
+const isUserSource = (u: unknown): u is UserModel => isNotNullObject(u) && typeof u.username === 'string';
+
+type Args<T extends keyof ResolverInputTypes, Z extends keyof ResolverInputTypes[T]> = Required<
+  ResolverInputTypes[T]
+>[Z] extends [infer Input, unknown]
+  ? Input
+  : never;
+type UserArgs<T extends keyof ResolverInputTypes, Z extends keyof ResolverInputTypes[T]> = Args<T, Z> & {
+  user: UserModel;
+};
+
+export const isNotNullObject = (v: unknown): v is Record<string | number | symbol, unknown> =>
+  typeof v === 'object' && v !== null;
+
+export const resolverForUser =
+  <T extends keyof ResolverInputTypes, Z extends keyof ResolverInputTypes[T], X = unknown>(
+    _1: T,
+    _2: Z,
+    fn: (args: UserArgs<T, Z>, input: FieldResolveInput) => X,
+  ) =>
+  async (args: unknown, input: FieldResolveInput) => {
+    if (!input.protocol?.headers?.Authorization) throw new Error('token does not exists in headers');
+    const { protocol: { headers = {} } = {} } = input || {};
+    const user = await getUser(headers.Authorization[0]);
+    if (!isUserSource(user)) throw new Error('invalid user');
+    const o = isNotNullObject(args) ? args : {};
+    return fn({ ...o, user } as UserArgs<T, Z>, input);
+  };
 
 export const isAdmin = async (username: string): Promise<boolean> => {
   if (username === process.env.SUPERADMIN) {

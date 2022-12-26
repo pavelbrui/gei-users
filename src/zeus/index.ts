@@ -8,8 +8,38 @@ export const HOST = "http://localhost:8080/"
 
 
 export const HEADERS = {}
-
-
+export const apiSubscription = (options: chainOptions) => (query: string) => {
+  try {
+    const queryString = options[0] + '?query=' + encodeURIComponent(query);
+    const wsString = queryString.replace('http', 'ws');
+    const host = (options.length > 1 && options[1]?.websocket?.[0]) || wsString;
+    const webSocketOptions = options[1]?.websocket || [host];
+    const ws = new WebSocket(...webSocketOptions);
+    return {
+      ws,
+      on: (e: (args: any) => void) => {
+        ws.onmessage = (event: any) => {
+          if (event.data) {
+            const parsed = JSON.parse(event.data);
+            const data = parsed.data;
+            return e(data);
+          }
+        };
+      },
+      off: (e: (args: any) => void) => {
+        ws.onclose = e;
+      },
+      error: (e: (args: any) => void) => {
+        ws.onerror = e;
+      },
+      open: (e: () => void) => {
+        ws.onopen = e;
+      },
+    };
+  } catch {
+    throw new Error('No websockets implemented');
+  }
+};
 const handleFetchResponse = (response: Response): Promise<GraphQLResponse> => {
   if (!response.ok) {
     return new Promise((_, reject) => {
@@ -58,48 +88,6 @@ export const apiFetch =
         return response.data;
       });
   };
-
-
-
-
-export const apiSubscription = (options: chainOptions) => (query: string) => {
-  try {
-    const queryString = options[0] + '?query=' + encodeURIComponent(query);
-    const wsString = queryString.replace('http', 'ws');
-    const host = (options.length > 1 && options[1]?.websocket?.[0]) || wsString;
-    const webSocketOptions = options[1]?.websocket || [host];
-    const ws = new WebSocket(...webSocketOptions);
-    return {
-      ws,
-      on: (e: (args: any) => void) => {
-        ws.onmessage = (event: any) => {
-          if (event.data) {
-            const parsed = JSON.parse(event.data);
-            const data = parsed.data;
-            return e(data);
-          }
-        };
-      },
-      off: (e: (args: any) => void) => {
-        ws.onclose = e;
-      },
-      error: (e: (args: any) => void) => {
-        ws.onerror = e;
-      },
-      open: (e: () => void) => {
-        ws.onopen = e;
-      },
-    };
-  } catch {
-    throw new Error('No websockets implemented');
-  }
-};
-
-
-
-
-
-
 
 export const InternalsBuildQuery = ({
   ops,
@@ -171,14 +159,6 @@ export const InternalsBuildQuery = ({
   return ibb;
 };
 
-
-
-
-
-
-
-
-
 export const Thunder =
   (fn: FetchFunction) =>
   <O extends keyof typeof Ops, SCLR extends ScalarDefinition, R extends keyof ValueTypes = GenericOperation<O>>(
@@ -221,9 +201,10 @@ export const SubscriptionThunder =
         scalars: graphqlOptions?.scalars,
       }),
     ) as SubscriptionToGraphQL<Z, GraphQLTypes[R], SCLR>;
-    if (returnedFunction?.on) {
+    if (returnedFunction?.on && graphqlOptions?.scalars) {
+      const wrapped = returnedFunction.on;
       returnedFunction.on = (fnToCall: (args: InputType<GraphQLTypes[R], Z, SCLR>) => void) =>
-        returnedFunction.on((data: InputType<GraphQLTypes[R], Z, SCLR>) => {
+        wrapped((data: InputType<GraphQLTypes[R], Z, SCLR>) => {
           if (graphqlOptions?.scalars) {
             return fnToCall(
               decodeScalarsInResponse({
@@ -277,12 +258,6 @@ export const Gql = Chain(HOST, {
 
 export const ZeusScalars = ZeusSelect<ScalarCoders>();
 
-
-
-
-
-
-
 export const decodeScalarsInResponse = <O extends Operations>({
   response,
   scalars,
@@ -308,7 +283,7 @@ export const decodeScalarsInResponse = <O extends Operations>({
 
   const scalarPaths = builder(initialOp as string, ops[initialOp], initialZeusQuery);
   if (scalarPaths) {
-    const r = traverseResponse({ scalarPaths, resolvers: scalars })('Query', response, ['Query']);
+    const r = traverseResponse({ scalarPaths, resolvers: scalars })(initialOp as string, response, [ops[initialOp]]);
     return r;
   }
   return response;
@@ -327,6 +302,9 @@ export const traverseResponse = ({
     if (Array.isArray(o)) {
       return o.map((eachO) => ibb(k, eachO, p));
     }
+    if (o == null) {
+      return o;
+    }
     const scalarPathString = p.join(SEPARATOR);
     const currentScalarString = scalarPaths[scalarPathString];
     if (currentScalarString) {
@@ -338,14 +316,15 @@ export const traverseResponse = ({
     if (typeof o === 'boolean' || typeof o === 'number' || typeof o === 'string' || !o) {
       return o;
     }
-    return Object.fromEntries(Object.entries(o).map(([k, v]) => [k, ibb(k, v, [...p, purifyGraphQLKey(k)])]));
+    const entries = Object.entries(o).map(([k, v]) => [k, ibb(k, v, [...p, purifyGraphQLKey(k)])] as const);
+    const objectFromEntries = entries.reduce<Record<string, unknown>>((a, [k, v]) => {
+      a[k] = v;
+      return a;
+    }, {});
+    return objectFromEntries;
   };
   return ibb;
 };
-
-
-
-
 
 export type AllTypesPropsType = {
   [x: string]:
@@ -431,10 +410,6 @@ export type ThunderGraphQLOptions<SCLR extends ScalarDefinition> = {
   scalars?: SCLR | ScalarCoders;
 };
 
-
-
-
-
 const ExtractScalar = (mappedParts: string[], returns: ReturnTypesType): `scalar.${string}` | undefined => {
   if (mappedParts.length === 0) {
     return;
@@ -497,9 +472,18 @@ export const PrepareScalarPaths = ({ ops, returns }: { returns: ReturnTypesType;
     const keyName = root ? ops[k] : k;
     return Object.entries(o)
       .filter(([k]) => k !== '__directives')
-      .map(([k, v]) =>
-        ibb(k, k, v, [...p, purifyGraphQLKey(keyName || k)], [...pOriginals, purifyGraphQLKey(originalKey)], false),
-      )
+      .map(([k, v]) => {
+        // Inline fragments shouldn't be added to the path as they aren't a field
+        const isInlineFragment = originalKey.match(/^...\s*on/) != null;
+        return ibb(
+          k,
+          k,
+          v,
+          isInlineFragment ? p : [...p, purifyGraphQLKey(keyName || k)],
+          isInlineFragment ? pOriginals : [...pOriginals, purifyGraphQLKey(originalKey)],
+          false,
+        );
+      })
       .reduce((a, b) => ({
         ...a,
         ...b,
@@ -508,13 +492,7 @@ export const PrepareScalarPaths = ({ ops, returns }: { returns: ReturnTypesType;
   return ibb;
 };
 
-
 export const purifyGraphQLKey = (k: string) => k.replace(/\([^)]*\)/g, '').replace(/^[^:]*\:/g, '');
-
-
-
-
-
 
 const mapPart = (p: string) => {
   const [isArg, isField] = p.split('<>');
@@ -578,6 +556,7 @@ export const ResolveFromPath = (props: AllTypesPropsType, returns: ReturnTypesTy
     const oKey = ops[mappedParts[0].v];
     const returnP1 = oKey ? returns[oKey] : returns[mappedParts[0].v];
     if (typeof returnP1 === 'object') {
+      if (mappedParts.length < 2) return 'not';
       const returnP2 = returnP1[mappedParts[1].v];
       if (returnP2) {
         return rpp(
@@ -672,9 +651,6 @@ export const InternalArgsBuilt = ({
   return arb;
 };
 
-
-
-
 export const resolverFor = <X, T extends keyof ResolverInputTypes, Z extends keyof ResolverInputTypes[T]>(
   type: T,
   field: Z,
@@ -683,10 +659,6 @@ export const resolverFor = <X, T extends keyof ResolverInputTypes, Z extends key
     source: any,
   ) => Z extends keyof ModelTypes[T] ? ModelTypes[T][Z] | Promise<ModelTypes[T][Z]> | X : any,
 ) => fn as (args?: any, source?: any) => any;
-
-
-
-
 
 export type UnwrapPromise<T> = T extends Promise<infer R> ? R : T;
 export type ZeusState<T extends (...args: any[]) => Promise<any>> = NonNullable<UnwrapPromise<ReturnType<T>>>;
@@ -728,9 +700,9 @@ type IsInterfaced<SRC extends DeepAnify<DST>, DST, SCLR extends ScalarDefinition
       [P in keyof SRC]: SRC[P] extends '__union' & infer R
         ? P extends keyof DST
           ? IsArray<R, '__typename' extends keyof DST ? DST[P] & { __typename: true } : DST[P], SCLR>
-          : Record<string, unknown>
+          : IsArray<R, '__typename' extends keyof DST ? { __typename: true } : never, SCLR>
         : never;
-    }[keyof DST] & {
+    }[keyof SRC] & {
       [P in keyof Omit<
         Pick<
           SRC,
@@ -833,9 +805,6 @@ type OptionalKeys<T> = {
 
 export type WithOptionalNullables<T> = OptionalKeys<WithNullableKeys<T>> & WithNonNullableKeys<T>;
 
-
-
-
 export type Variable<T extends GraphQLVariableType, Name extends string> = {
   ' __zeus_name': Name;
   ' __zeus_type': T;
@@ -858,7 +827,6 @@ export const GRAPHQL_TYPE_SEPARATOR = `__$GRAPHQL__`;
 export const $ = <Type extends GraphQLVariableType, Name extends string>(name: Name, graphqlType: Type) => {
   return (START_VAR_NAME + name + GRAPHQL_TYPE_SEPARATOR + graphqlType) as unknown as Variable<Type, Name>;
 };
-
 type ZEUS_INTERFACES = never
 export type ScalarCoders = {
 }
@@ -870,6 +838,8 @@ login?: [{	user: ValueTypes["LoginInput"] | Variable<any, string>},boolean | `@$
 	/** Check if the user is logged in from headers and return it */
 	isUser?:ValueTypes["User"],
 	mustBeUser?:ValueTypes["User"],
+team?: [{	teamName?: string | undefined | null | Variable<any, string>},ValueTypes["Team"]],
+showTeamInvitations?: [{	status: ValueTypes["InvitationTeamStatus"] | Variable<any, string>},boolean | `@${string}`],
 		__typename?: boolean | `@${string}`
 }>;
 	["LoginInput"]: {
@@ -877,13 +847,58 @@ login?: [{	user: ValueTypes["LoginInput"] | Variable<any, string>},boolean | `@$
 	password: string | Variable<any, string>
 };
 	["Mutation"]: AliasType<{
-register?: [{	user: ValueTypes["LoginInput"] | Variable<any, string>},boolean | `@${string}`],
+register?: [{	userData: ValueTypes["RegisterInput"] | Variable<any, string>},boolean | `@${string}`],
+verifyEmail?: [{	verifyData: ValueTypes["VerifyEmailInput"] | Variable<any, string>},boolean | `@${string}`],
+changePassword?: [{	passwords: ValueTypes["ChangePasswordInput"] | Variable<any, string>},boolean | `@${string}`],
+generateInviteToken?: [{	/** string format dd/mm/rrrr */
+	tokenOptions: ValueTypes["InviteTokenInput"] | Variable<any, string>},boolean | `@${string}`],
+removeUserFromTeam?: [{	username: string | Variable<any, string>},boolean | `@${string}`],
+sendInvitationToTeam?: [{	invitation: ValueTypes["SendTeamInvitationInput"] | Variable<any, string>},boolean | `@${string}`],
+joinToTeam?: [{	teamName: string | Variable<any, string>},boolean | `@${string}`],
+createTeam?: [{	teamName: string | Variable<any, string>},boolean | `@${string}`],
+		__typename?: boolean | `@${string}`
+}>;
+	["SendTeamInvitationInput"]: {
+	username: string | Variable<any, string>,
+	team: string | Variable<any, string>
+};
+	["VerifyEmailInput"]: {
+	username: string | Variable<any, string>,
+	token: string | Variable<any, string>
+};
+	["InviteTokenInput"]: {
+	expires: string | Variable<any, string>,
+	domain: string | Variable<any, string>
+};
+	["ChangePasswordInput"]: {
+	oldPassword: string | Variable<any, string>,
+	newPassword: string | Variable<any, string>
+};
+	["RegisterInput"]: {
+	username: string | Variable<any, string>,
+	password: string | Variable<any, string>,
+	invitationToken?: string | undefined | null | Variable<any, string>
+};
+	["InviteToken"]: AliasType<{
+	token?:boolean | `@${string}`,
+	expires?:boolean | `@${string}`,
+	domain?:boolean | `@${string}`,
+	owner?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["Team"]: AliasType<{
+	name?:boolean | `@${string}`,
+	owner?:boolean | `@${string}`,
+	members?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["User"]: AliasType<{
 	username?:boolean | `@${string}`,
+	team?:boolean | `@${string}`,
+	emailConfirmed?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
-}>
+}>;
+	["InvitationTeamStatus"]:InvitationTeamStatus
   }
 
 export type ResolverInputTypes = {
@@ -892,6 +907,8 @@ login?: [{	user: ResolverInputTypes["LoginInput"]},boolean | `@${string}`],
 	/** Check if the user is logged in from headers and return it */
 	isUser?:ResolverInputTypes["User"],
 	mustBeUser?:ResolverInputTypes["User"],
+team?: [{	teamName?: string | undefined | null},ResolverInputTypes["Team"]],
+showTeamInvitations?: [{	status: ResolverInputTypes["InvitationTeamStatus"]},boolean | `@${string}`],
 		__typename?: boolean | `@${string}`
 }>;
 	["LoginInput"]: {
@@ -899,13 +916,58 @@ login?: [{	user: ResolverInputTypes["LoginInput"]},boolean | `@${string}`],
 	password: string
 };
 	["Mutation"]: AliasType<{
-register?: [{	user: ResolverInputTypes["LoginInput"]},boolean | `@${string}`],
+register?: [{	userData: ResolverInputTypes["RegisterInput"]},boolean | `@${string}`],
+verifyEmail?: [{	verifyData: ResolverInputTypes["VerifyEmailInput"]},boolean | `@${string}`],
+changePassword?: [{	passwords: ResolverInputTypes["ChangePasswordInput"]},boolean | `@${string}`],
+generateInviteToken?: [{	/** string format dd/mm/rrrr */
+	tokenOptions: ResolverInputTypes["InviteTokenInput"]},boolean | `@${string}`],
+removeUserFromTeam?: [{	username: string},boolean | `@${string}`],
+sendInvitationToTeam?: [{	invitation: ResolverInputTypes["SendTeamInvitationInput"]},boolean | `@${string}`],
+joinToTeam?: [{	teamName: string},boolean | `@${string}`],
+createTeam?: [{	teamName: string},boolean | `@${string}`],
+		__typename?: boolean | `@${string}`
+}>;
+	["SendTeamInvitationInput"]: {
+	username: string,
+	team: string
+};
+	["VerifyEmailInput"]: {
+	username: string,
+	token: string
+};
+	["InviteTokenInput"]: {
+	expires: string,
+	domain: string
+};
+	["ChangePasswordInput"]: {
+	oldPassword: string,
+	newPassword: string
+};
+	["RegisterInput"]: {
+	username: string,
+	password: string,
+	invitationToken?: string | undefined | null
+};
+	["InviteToken"]: AliasType<{
+	token?:boolean | `@${string}`,
+	expires?:boolean | `@${string}`,
+	domain?:boolean | `@${string}`,
+	owner?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["Team"]: AliasType<{
+	name?:boolean | `@${string}`,
+	owner?:boolean | `@${string}`,
+	members?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["User"]: AliasType<{
 	username?:boolean | `@${string}`,
+	team?:boolean | `@${string}`,
+	emailConfirmed?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
-}>
+}>;
+	["InvitationTeamStatus"]:InvitationTeamStatus
   }
 
 export type ModelTypes = {
@@ -913,18 +975,62 @@ export type ModelTypes = {
 		login: string,
 	/** Check if the user is logged in from headers and return it */
 	isUser?: ModelTypes["User"] | undefined,
-	mustBeUser?: ModelTypes["User"] | undefined
+	mustBeUser?: ModelTypes["User"] | undefined,
+	team?: ModelTypes["Team"] | undefined,
+	showTeamInvitations: Array<string | undefined>
 };
 	["LoginInput"]: {
 	username: string,
 	password: string
 };
 	["Mutation"]: {
-		register: boolean
+		register: boolean,
+	verifyEmail: boolean,
+	changePassword: boolean,
+	generateInviteToken: string,
+	removeUserFromTeam: boolean,
+	sendInvitationToTeam: boolean,
+	joinToTeam: boolean,
+	createTeam: boolean
+};
+	["SendTeamInvitationInput"]: {
+	username: string,
+	team: string
+};
+	["VerifyEmailInput"]: {
+	username: string,
+	token: string
+};
+	["InviteTokenInput"]: {
+	expires: string,
+	domain: string
+};
+	["ChangePasswordInput"]: {
+	oldPassword: string,
+	newPassword: string
+};
+	["RegisterInput"]: {
+	username: string,
+	password: string,
+	invitationToken?: string | undefined
+};
+	["InviteToken"]: {
+		token: string,
+	expires: string,
+	domain: string,
+	owner: string
+};
+	["Team"]: {
+		name: string,
+	owner?: string | undefined,
+	members: Array<string>
 };
 	["User"]: {
-		username: string
-}
+		username: string,
+	team: Array<string | undefined>,
+	emailConfirmed: boolean
+};
+	["InvitationTeamStatus"]:InvitationTeamStatus
     }
 
 export type GraphQLTypes = {
@@ -933,7 +1039,9 @@ export type GraphQLTypes = {
 	login: string,
 	/** Check if the user is logged in from headers and return it */
 	isUser?: GraphQLTypes["User"] | undefined,
-	mustBeUser?: GraphQLTypes["User"] | undefined
+	mustBeUser?: GraphQLTypes["User"] | undefined,
+	team?: GraphQLTypes["Team"] | undefined,
+	showTeamInvitations: Array<string | undefined>
 };
 	["LoginInput"]: {
 		username: string,
@@ -941,15 +1049,68 @@ export type GraphQLTypes = {
 };
 	["Mutation"]: {
 	__typename: "Mutation",
-	register: boolean
+	register: boolean,
+	verifyEmail: boolean,
+	changePassword: boolean,
+	generateInviteToken: string,
+	removeUserFromTeam: boolean,
+	sendInvitationToTeam: boolean,
+	joinToTeam: boolean,
+	createTeam: boolean
+};
+	["SendTeamInvitationInput"]: {
+		username: string,
+	team: string
+};
+	["VerifyEmailInput"]: {
+		username: string,
+	token: string
+};
+	["InviteTokenInput"]: {
+		expires: string,
+	domain: string
+};
+	["ChangePasswordInput"]: {
+		oldPassword: string,
+	newPassword: string
+};
+	["RegisterInput"]: {
+		username: string,
+	password: string,
+	invitationToken?: string | undefined
+};
+	["InviteToken"]: {
+	__typename: "InviteToken",
+	token: string,
+	expires: string,
+	domain: string,
+	owner: string
+};
+	["Team"]: {
+	__typename: "Team",
+	name: string,
+	owner?: string | undefined,
+	members: Array<string>
 };
 	["User"]: {
 	__typename: "User",
-	username: string
-}
+	username: string,
+	team: Array<string | undefined>,
+	emailConfirmed: boolean
+};
+	["InvitationTeamStatus"]: InvitationTeamStatus
     }
-
+export const enum InvitationTeamStatus {
+	Waiting = "Waiting",
+	Taken = "Taken"
+}
 
 type ZEUS_VARIABLES = {
 	["LoginInput"]: ValueTypes["LoginInput"];
+	["SendTeamInvitationInput"]: ValueTypes["SendTeamInvitationInput"];
+	["VerifyEmailInput"]: ValueTypes["VerifyEmailInput"];
+	["InviteTokenInput"]: ValueTypes["InviteTokenInput"];
+	["ChangePasswordInput"]: ValueTypes["ChangePasswordInput"];
+	["RegisterInput"]: ValueTypes["RegisterInput"];
+	["InvitationTeamStatus"]: ValueTypes["InvitationTeamStatus"];
 }

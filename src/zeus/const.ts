@@ -13,7 +13,7 @@ export const AllTypesProps: Record<string,any> = {
 		}
 	},
 	LoginInput:{
-
+		loginType:"LoginType"
 	},
 	Mutation:{
 		register:{
@@ -56,6 +56,7 @@ export const AllTypesProps: Record<string,any> = {
 	RegisterInput:{
 
 	},
+	LoginType: "enum" as const,
 	InvitationTeamStatus: "enum" as const
 }
 
@@ -65,7 +66,8 @@ export const ReturnTypes: Record<string,any> = {
 		isUser:"User",
 		mustBeUser:"User",
 		team:"Team",
-		showTeamInvitations:"String"
+		showTeamInvitations:"String",
+		getGoogleOAuthLink:"String"
 	},
 	Mutation:{
 		register:"Boolean",

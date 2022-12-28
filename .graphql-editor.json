@@ -8,5 +8,5 @@
     "backendSrc": "./src",
     "backendLib": "./lib",
     "schemaDir": "./",
-    "projectVersion": "0.0.51"
+    "projectVersion": "0.0.6"
 }

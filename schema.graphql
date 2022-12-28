@@ -10,10 +10,13 @@ type Query{
 	isUser: User
 	mustBeUser: User
 	team(teamName: String): Team
-	showTeamInvitations(status: InvitationTeamStatus!): [String]!
+	showTeamInvitations	(status: InvitationTeamStatus!): [String]!
+	getGoogleOAuthLink: String!
 }
 
 input LoginInput{
+	loginType: LoginType!
+	code: String
 	username: String!
 	password: String!
 }
@@ -91,6 +94,13 @@ type User{
 	username: String!
 	team: [String]!
 	emailConfirmed: Boolean!
+}
+
+enum LoginType{
+	GoogleOAuth,
+	Github
+	Apple
+	Default
 }
 
 enum InvitationTeamStatus{

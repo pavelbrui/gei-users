@@ -840,9 +840,12 @@ login?: [{	user: ValueTypes["LoginInput"] | Variable<any, string>},boolean | `@$
 	mustBeUser?:ValueTypes["User"],
 team?: [{	teamName?: string | undefined | null | Variable<any, string>},ValueTypes["Team"]],
 showTeamInvitations?: [{	status: ValueTypes["InvitationTeamStatus"] | Variable<any, string>},boolean | `@${string}`],
+	getGoogleOAuthLink?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["LoginInput"]: {
+	loginType: ValueTypes["LoginType"] | Variable<any, string>,
+	code?: string | undefined | null | Variable<any, string>,
 	username: string | Variable<any, string>,
 	password: string | Variable<any, string>
 };
@@ -898,6 +901,7 @@ createTeam?: [{	teamName: string | Variable<any, string>},boolean | `@${string}`
 	emailConfirmed?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	["LoginType"]:LoginType;
 	["InvitationTeamStatus"]:InvitationTeamStatus
   }
 
@@ -909,9 +913,12 @@ login?: [{	user: ResolverInputTypes["LoginInput"]},boolean | `@${string}`],
 	mustBeUser?:ResolverInputTypes["User"],
 team?: [{	teamName?: string | undefined | null},ResolverInputTypes["Team"]],
 showTeamInvitations?: [{	status: ResolverInputTypes["InvitationTeamStatus"]},boolean | `@${string}`],
+	getGoogleOAuthLink?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["LoginInput"]: {
+	loginType: ResolverInputTypes["LoginType"],
+	code?: string | undefined | null,
 	username: string,
 	password: string
 };
@@ -967,6 +974,7 @@ createTeam?: [{	teamName: string},boolean | `@${string}`],
 	emailConfirmed?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	["LoginType"]:LoginType;
 	["InvitationTeamStatus"]:InvitationTeamStatus
   }
 
@@ -977,9 +985,12 @@ export type ModelTypes = {
 	isUser?: ModelTypes["User"] | undefined,
 	mustBeUser?: ModelTypes["User"] | undefined,
 	team?: ModelTypes["Team"] | undefined,
-	showTeamInvitations: Array<string | undefined>
+	showTeamInvitations: Array<string | undefined>,
+	getGoogleOAuthLink: string
 };
 	["LoginInput"]: {
+	loginType: ModelTypes["LoginType"],
+	code?: string | undefined,
 	username: string,
 	password: string
 };
@@ -1030,6 +1041,7 @@ export type ModelTypes = {
 	team: Array<string | undefined>,
 	emailConfirmed: boolean
 };
+	["LoginType"]:LoginType;
 	["InvitationTeamStatus"]:InvitationTeamStatus
     }
 
@@ -1041,10 +1053,13 @@ export type GraphQLTypes = {
 	isUser?: GraphQLTypes["User"] | undefined,
 	mustBeUser?: GraphQLTypes["User"] | undefined,
 	team?: GraphQLTypes["Team"] | undefined,
-	showTeamInvitations: Array<string | undefined>
+	showTeamInvitations: Array<string | undefined>,
+	getGoogleOAuthLink: string
 };
 	["LoginInput"]: {
-		username: string,
+		loginType: GraphQLTypes["LoginType"],
+	code?: string | undefined,
+	username: string,
 	password: string
 };
 	["Mutation"]: {
@@ -1098,8 +1113,15 @@ export type GraphQLTypes = {
 	team: Array<string | undefined>,
 	emailConfirmed: boolean
 };
+	["LoginType"]: LoginType;
 	["InvitationTeamStatus"]: InvitationTeamStatus
     }
+export const enum LoginType {
+	GoogleOAuth = "GoogleOAuth",
+	Github = "Github",
+	Apple = "Apple",
+	Default = "Default"
+}
 export const enum InvitationTeamStatus {
 	Waiting = "Waiting",
 	Taken = "Taken"
@@ -1112,5 +1134,6 @@ type ZEUS_VARIABLES = {
 	["InviteTokenInput"]: ValueTypes["InviteTokenInput"];
 	["ChangePasswordInput"]: ValueTypes["ChangePasswordInput"];
 	["RegisterInput"]: ValueTypes["RegisterInput"];
+	["LoginType"]: ValueTypes["LoginType"];
 	["InvitationTeamStatus"]: ValueTypes["InvitationTeamStatus"];
 }

@@ -841,13 +841,14 @@ login?: [{	user: ValueTypes["LoginInput"] | Variable<any, string>},boolean | `@$
 team?: [{	teamName?: string | undefined | null | Variable<any, string>},ValueTypes["Team"]],
 showTeamInvitations?: [{	status: ValueTypes["InvitationTeamStatus"] | Variable<any, string>},boolean | `@${string}`],
 	getGoogleOAuthLink?:boolean | `@${string}`,
+getGithubOAuthLink?: [{	scopes: Array<string | undefined | null> | Variable<any, string>},boolean | `@${string}`],
 		__typename?: boolean | `@${string}`
 }>;
 	["LoginInput"]: {
 	loginType: ValueTypes["LoginType"] | Variable<any, string>,
 	code?: string | undefined | null | Variable<any, string>,
-	username: string | Variable<any, string>,
-	password: string | Variable<any, string>
+	username?: string | undefined | null | Variable<any, string>,
+	password?: string | undefined | null | Variable<any, string>
 };
 	["Mutation"]: AliasType<{
 register?: [{	userData: ValueTypes["RegisterInput"] | Variable<any, string>},boolean | `@${string}`],
@@ -899,6 +900,8 @@ createTeam?: [{	teamName: string | Variable<any, string>},boolean | `@${string}`
 	username?:boolean | `@${string}`,
 	team?:boolean | `@${string}`,
 	emailConfirmed?:boolean | `@${string}`,
+	githubToken?:boolean | `@${string}`,
+	googleToken?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["LoginType"]:LoginType;
@@ -914,13 +917,17 @@ login?: [{	user: ResolverInputTypes["LoginInput"]},boolean | `@${string}`],
 team?: [{	teamName?: string | undefined | null},ResolverInputTypes["Team"]],
 showTeamInvitations?: [{	status: ResolverInputTypes["InvitationTeamStatus"]},boolean | `@${string}`],
 	getGoogleOAuthLink?:boolean | `@${string}`,
+getGithubOAuthLink?: [{
+    length: number;
+    forEach(arg0: (scope: any) => void): unknown;	scopes: Array<string | undefined | null>
+},boolean | `@${string}`],
 		__typename?: boolean | `@${string}`
 }>;
 	["LoginInput"]: {
 	loginType: ResolverInputTypes["LoginType"],
 	code?: string | undefined | null,
-	username: string,
-	password: string
+	username?: string | undefined | null,
+	password?: string | undefined | null
 };
 	["Mutation"]: AliasType<{
 register?: [{	userData: ResolverInputTypes["RegisterInput"]},boolean | `@${string}`],
@@ -972,6 +979,8 @@ createTeam?: [{	teamName: string},boolean | `@${string}`],
 	username?:boolean | `@${string}`,
 	team?:boolean | `@${string}`,
 	emailConfirmed?:boolean | `@${string}`,
+	githubToken?:boolean | `@${string}`,
+	googleToken?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["LoginType"]:LoginType;
@@ -986,13 +995,14 @@ export type ModelTypes = {
 	mustBeUser?: ModelTypes["User"] | undefined,
 	team?: ModelTypes["Team"] | undefined,
 	showTeamInvitations: Array<string | undefined>,
-	getGoogleOAuthLink: string
+	getGoogleOAuthLink: string,
+	getGithubOAuthLink: string
 };
 	["LoginInput"]: {
 	loginType: ModelTypes["LoginType"],
 	code?: string | undefined,
-	username: string,
-	password: string
+	username?: string | undefined,
+	password?: string | undefined
 };
 	["Mutation"]: {
 		register: boolean,
@@ -1039,7 +1049,9 @@ export type ModelTypes = {
 	["User"]: {
 		username: string,
 	team: Array<string | undefined>,
-	emailConfirmed: boolean
+	emailConfirmed: boolean,
+	githubToken?: string | undefined,
+	googleToken?: string | undefined
 };
 	["LoginType"]:LoginType;
 	["InvitationTeamStatus"]:InvitationTeamStatus
@@ -1054,13 +1066,14 @@ export type GraphQLTypes = {
 	mustBeUser?: GraphQLTypes["User"] | undefined,
 	team?: GraphQLTypes["Team"] | undefined,
 	showTeamInvitations: Array<string | undefined>,
-	getGoogleOAuthLink: string
+	getGoogleOAuthLink: string,
+	getGithubOAuthLink: string
 };
 	["LoginInput"]: {
 		loginType: GraphQLTypes["LoginType"],
 	code?: string | undefined,
-	username: string,
-	password: string
+	username?: string | undefined,
+	password?: string | undefined
 };
 	["Mutation"]: {
 	__typename: "Mutation",
@@ -1111,7 +1124,9 @@ export type GraphQLTypes = {
 	__typename: "User",
 	username: string,
 	team: Array<string | undefined>,
-	emailConfirmed: boolean
+	emailConfirmed: boolean,
+	githubToken?: string | undefined,
+	googleToken?: string | undefined
 };
 	["LoginType"]: LoginType;
 	["InvitationTeamStatus"]: InvitationTeamStatus

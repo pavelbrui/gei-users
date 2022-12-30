@@ -38,6 +38,11 @@
         "name": "lib/Query/getGoogleOAuthLink"
       }
     },
+    "Query.getGithubOAuthLink": {
+      "resolve": {
+        "name": "lib/Query/getGithubOAuthLink"
+      }
+    },
     "Query.showTeamInvitations": {
       "resolve": {
         "name": "lib/Query/showTeamInvitations"

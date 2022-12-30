@@ -10,6 +10,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		showTeamInvitations:{
 			status:"InvitationTeamStatus"
+		},
+		getGithubOAuthLink:{
+
 		}
 	},
 	LoginInput:{
@@ -67,7 +70,8 @@ export const ReturnTypes: Record<string,any> = {
 		mustBeUser:"User",
 		team:"Team",
 		showTeamInvitations:"String",
-		getGoogleOAuthLink:"String"
+		getGoogleOAuthLink:"String",
+		getGithubOAuthLink:"String"
 	},
 	Mutation:{
 		register:"Boolean",
@@ -93,7 +97,9 @@ export const ReturnTypes: Record<string,any> = {
 	User:{
 		username:"String",
 		team:"String",
-		emailConfirmed:"Boolean"
+		emailConfirmed:"Boolean",
+		githubToken:"String",
+		googleToken:"String"
 	}
 }
 

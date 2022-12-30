@@ -12,13 +12,14 @@ type Query{
 	team(teamName: String): Team
 	showTeamInvitations	(status: InvitationTeamStatus!): [String]!
 	getGoogleOAuthLink: String!
+	getGithubOAuthLink(scopes: [String]!): String!
 }
 
 input LoginInput{
 	loginType: LoginType!
 	code: String
-	username: String!
-	password: String!
+	username: String
+	password: String
 }
 
 type Mutation{
@@ -94,6 +95,8 @@ type User{
 	username: String!
 	team: [String]!
 	emailConfirmed: Boolean!
+	githubToken: String
+	googleToken: String
 }
 
 enum LoginType{

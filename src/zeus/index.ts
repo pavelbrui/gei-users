@@ -877,6 +877,7 @@ createTeam?: [{	teamName: string | Variable<any, string>},boolean | `@${string}`
 	["RegisterInput"]: {
 	username: string | Variable<any, string>,
 	password: string | Variable<any, string>,
+  nickname?: string | undefined | null | Variable<any, string>,
 	invitationToken?: string | undefined | null | Variable<any, string>
 };
 	["InviteToken"]: AliasType<{
@@ -946,6 +947,7 @@ createTeam?: [{	teamName: string},boolean | `@${string}`],
 	["RegisterInput"]: {
 	username: string,
 	password: string,
+  nickname?: string,
 	invitationToken?: string | undefined | null
 };
 	["InviteToken"]: AliasType<{
@@ -963,6 +965,7 @@ createTeam?: [{	teamName: string},boolean | `@${string}`],
 }>;
 	["User"]: AliasType<{
 	username?:boolean | `@${string}`,
+  nickname?: boolean | `@${string}`,
 	team?:boolean | `@${string}`,
 	emailConfirmed?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -1027,6 +1030,7 @@ export type ModelTypes = {
 };
 	["User"]: {
 		username: string,
+  nickname?: string 
 	team: Array<string | undefined>,
 	emailConfirmed: boolean
 };
@@ -1077,6 +1081,7 @@ export type GraphQLTypes = {
 	["RegisterInput"]: {
 		username: string,
 	password: string,
+  nickname?: string 
 	invitationToken?: string | undefined
 };
 	["InviteToken"]: {
@@ -1095,6 +1100,7 @@ export type GraphQLTypes = {
 	["User"]: {
 	__typename: "User",
 	username: string,
+  nickname?: string 
 	team: Array<string | undefined>,
 	emailConfirmed: boolean
 };

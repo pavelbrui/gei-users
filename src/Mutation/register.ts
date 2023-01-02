@@ -17,7 +17,7 @@ export const isPasswordEqualToSpecialParams = (password: string): boolean =>
   /[^a-zA-Z0-9]/.test(password) && /[a-z]/.test(password) && /[A-Z]/.test(password);
 
 export const handler = async (input: FieldResolveInput) =>
-  resolverFor('Mutation', 'register', async ({ userData: { username, password, invitationToken } }) => {
+  resolverFor('Mutation', 'register', async ({ userData: { username, password, nickname, invitationToken } }) => {
     const db = await DB();
     await doIndex(db);
     if (password.length >= 6) {
@@ -43,6 +43,6 @@ export const handler = async (input: FieldResolveInput) =>
           `username is not equal to required domain from token, your pattern is ${tokenInformaton.domain}`,
         );
     }
-    const res = await db.collection(UserCollection).insertOne({ username, salt, passwordHash, emailConfirmed: false });
+    const res = await db.collection(UserCollection).insertOne({ username, salt, passwordHash, nickname, emailConfirmed: false });
     return res.insertedId.toHexString().length !== 0;
   })(input.arguments);

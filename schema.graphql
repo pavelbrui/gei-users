@@ -71,6 +71,7 @@ input ChangePasswordInput{
 input RegisterInput{
 	username: String!
 	password: String!
+	nickname: String
 	invitationToken: String
 }
 
@@ -90,6 +91,7 @@ type Team{
 type User{
 	username: String!
 	team: [String]!
+	nickname: String
 	emailConfirmed: Boolean!
 }
 
